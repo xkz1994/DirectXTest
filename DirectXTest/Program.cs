@@ -1,5 +1,7 @@
 ﻿// ReSharper disable LocalizableElement
 
+using System.Reflection;
+
 namespace DirectXTest;
 
 public static class Program
@@ -9,11 +11,13 @@ public static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        // Application.SetHighDpiMode(HighDpiMode.SystemAware);
-
+#if NET
+        Application.SetHighDpiMode(HighDpiMode.SystemAware);
+#endif
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
         var form = new Form
         {
-            Text = "Select Monitor",
+            Text = $"Select Screenshot V{version}",
             Width = 600,
             Height = 400,
             MinimizeBox = false,
@@ -80,11 +84,13 @@ public static class Program
         form.Controls.Add(tableLayoutPanel);
         Application.Run(form);
     }
-
+ 
     private static void CaptureScreen(Screen screen)
     {
-        var (bytes, _) = DxScreenCaptureUtil.Capture(screen.Bounds, 100);
+        // ReSharper disable once UnusedVariable
+        var (bitmap, i) = DxScreenCaptureUtil.Capture(screen.Bounds);
+        if (bitmap is null) throw new InvalidOperationException("Failed to capture screen.");
         // 将图片放到剪切板中
-        Clipboard.SetImage(Image.FromStream(new MemoryStream(bytes)));
+        Clipboard.SetImage(bitmap);
     }
 }
